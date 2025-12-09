@@ -1,0 +1,139 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  // ================================
+  // Base configuration
+  // ================================
+  "extends": [
+    "config:recommended",                 // Solid defaults
+    "config:semanticCommits",             // feat:, fix:, chore:
+    ":semanticPrefixFixDepsChoreOthers",
+    ":separateMajorReleases",
+    ":automergeDisabled",
+    "group:allNonMajor"                   // Reduces PR noise
+  ],
+
+  // ================================
+  // Scheduling to avoid spam
+  // ================================
+  "schedule": ["after 3am and before 6am on Saturday"],
+
+  // ================================
+  // Branch naming
+  // ================================
+  "branchPrefix": "renovate/",
+
+  // ================================
+  // Dependency Dashboard (UI in GitHub)
+  // ================================
+  "dependencyDashboard": true,
+
+  // ================================
+  // Version pinning (new dependencies)
+  // ================================
+  "pinVersions": true,
+
+  // ================================
+  // Gradle + Version Catalog support
+  // ================================
+  "regexManagers": [
+    {
+      "fileMatch": ["(^|/)libs\\.versions\\.toml$"],
+      "matchStrings": [
+        "(?<depName>[A-Za-z0-9_.-]+)\\s*=\\s*\"(?<currentValue>.*?)\""
+      ],
+      "datasourceTemplate": "maven"
+    }
+  ],
+
+  "gradle": {
+    "enabled": true
+  },
+
+  "gradleWrapper": {
+    "enabled": true
+  },
+
+  // ================================
+  // Docker base image updates
+  // ================================
+  "docker": {
+    "enabled": true
+  },
+
+  "enabledManagers": [
+    "regex",
+    "gradle",
+    "gradle-wrapper",
+    "dockerfile",
+    "github-actions"
+  ],
+
+  // ================================
+  // GitHub Actions updates
+  // ================================
+  "github-actions": {
+    "enabled": true
+  },
+
+  // ================================
+  // PR Limits
+  // ================================
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+
+  "automerge": false,
+  "automergeType": "pr",
+
+  "labels": ["dependencies"],
+
+  // ================================
+  // Grouping Rules
+  // ================================
+  "packageRules": [
+
+    // --- Ktor updates grouped ---
+    {
+      "matchPackagePatterns": ["^io\\.ktor"],
+      "groupName": "Ktor Framework Updates"
+    },
+
+    // --- Kotlin updates grouped ---
+    {
+      "matchPackagePatterns": ["^org\\.jetbrains\\.kotlin"],
+      "groupName": "Kotlin Toolchain Updates"
+    },
+
+    // --- Koin grouped ---
+    {
+      "matchPackagePatterns": ["koin"],
+      "groupName": "Koin Dependency Updates"
+    },
+
+    // --- Logging grouped ---
+    {
+      "matchPackagePatterns": ["logback", "slf4j"],
+      "groupName": "Logging Updates"
+    },
+
+    // --- Observability (Micrometer, OpenTelemetry) ---
+    {
+      "matchPackagePatterns": ["micrometer", "opentelemetry"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false,                 // Avoid breaking changes
+      "groupName": "Telemetry Stack Updates"
+    },
+
+    // --- GitHub Actions grouped ---
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions Updates"
+    },
+
+    // --- Dockerfile image grouped ---
+    {
+      "matchManagers": ["dockerfile"],
+      "groupName": "Docker Base Image Updates"
+    }
+  ]
+}

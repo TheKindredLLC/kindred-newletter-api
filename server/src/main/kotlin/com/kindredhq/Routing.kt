@@ -1,0 +1,17 @@
+/*
+ * Kindred Newsletter API
+ * Copyright (c) 2025 The Kindred
+ *
+ * Licensed under the MIT License.
+ *
+ * See LICENSE file in the project root for full license information.
+ */
+package com.kindredhq
+
+import io.ktor.server.application.Application
+import io.ktor.server.routing.routing
+
+fun Application.configureRouting() {
+    routing {
+    }
+}

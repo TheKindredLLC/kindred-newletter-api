@@ -1,0 +1,9 @@
+title = "Kindred Newsletter API - Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlist for false positives"
+paths = []
+regexes = []

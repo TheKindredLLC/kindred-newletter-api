@@ -1,0 +1,100 @@
+name: Code Quality Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+
+  enforce-branch-name:
+    name: Enforce Branch Naming Convention
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check branch name
+        run: |
+          BRANCH_NAME="${{ github.head_ref }}"
+          echo "Branch name: $BRANCH_NAME"
+
+          if [[ ! "$BRANCH_NAME" =~ ^(feature|bugfix|hotfix|chore)\/[a-z0-9._-]+$ ]]; then
+            echo "::error::Invalid branch name. Use one of:"
+            echo "  feature/<name>"
+            echo "  bugfix/<name>"
+            echo "  hotfix/<name>"
+            echo "  chore/<name>"
+            exit 1
+          fi
+
+
+  enforce-commit-messages:
+    name: Enforce Conventional Commit Messages
+    runs-on: ubuntu-latest
+    needs: enforce-branch-name
+
+    steps:
+      - name: Validate commit messages
+        run: |
+          regex="^(feat|fix|chore|refactor|docs|test|style|perf|ci|build)(\(.+\))?: .+"
+          echo "Checking commit messages..."
+
+          invalid=0
+
+          while read -r msg; do
+            echo "Commit: $msg"
+            if [[ ! "$msg" =~ $regex ]]; then
+              echo "::error::Invalid commit message format:"
+              echo "  $msg"
+              echo "Expected Conventional Commits, such as:"
+              echo "  feat: add newsletter API route"
+              echo "  fix: correct image upload bug"
+              echo "  chore: update dependencies"
+              invalid=1
+            fi
+          done < <(git log --format=%s ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+
+          if [[ $invalid -eq 1 ]]; then
+            exit 1
+          fi
+
+
+  label-pr:
+    name: Auto Label PR
+    runs-on: ubuntu-latest
+    needs: enforce-commit-messages
+
+    steps:
+      - name: Apply labels based on branch type
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: |
+            ${{ startsWith(github.head_ref, 'feature/') && 'enhancement' || '' }}
+            ${{ startsWith(github.head_ref, 'bugfix/') && 'bug' || '' }}
+            ${{ startsWith(github.head_ref, 'hotfix/') && 'hotfix' || '' }}
+            ${{ startsWith(github.head_ref, 'chore/') && 'chore' || '' }}
+
+      - name: Add "needs-review" label
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: |
+            needs-review
+
+
+  auto-assign-reviewer:
+    name: Auto Assign Reviewer
+    runs-on: ubuntu-latest
+    needs: label-pr
+
+    steps:
+      - name: Assign reviewer phoenixredwolf
+        uses: kentaro-m/auto-assign-action@v1.2.0
+        with:
+          reviewers: phoenixredwolf
+          team_reviewers: ""
+          add_reviewers: true
+          add_assignees: false

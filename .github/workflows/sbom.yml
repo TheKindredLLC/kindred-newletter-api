@@ -1,0 +1,44 @@
+name: SBOM Generation
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 1'  # Weekly Monday at 03:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Grant execute permissions for Gradle
+        run: chmod +x gradlew
+
+      - name: Build project (create JAR before building Docker image)
+        run: ./gradlew build --no-daemon --stacktrace
+
+      - name: Build Docker image
+        run: docker build -t kindred-newsletter-api:ci .
+
+      - name: Generate SBOM for Docker image
+        uses: anchore/sbom-action@v0
+        with:
+          image: kindred-newsletter-api:ci
+          format: cyclonedx-json
+          output-file: sbom.json
+          upload-artifact: true
