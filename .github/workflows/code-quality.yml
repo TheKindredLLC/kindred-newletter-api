@@ -85,16 +85,9 @@ jobs:
             needs-review
 
 
-  auto-assign-reviewer:
-    name: Auto Assign Reviewer
-    runs-on: ubuntu-latest
-    needs: label-pr
-
-    steps:
-      - name: Assign reviewer phoenixredwolf
+      - name: Auto-assign reviewer
         uses: kentaro-m/auto-assign-action@v1.2.0
         with:
-          reviewers: phoenixredwolf
-          team_reviewers: ""
-          add_reviewers: true
-          add_assignees: false
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/auto_assign.yml
+

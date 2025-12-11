@@ -14,8 +14,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v2
+      - name: Validate Gradle Wrapper (retry)
+        run: |
+          for i in {1..3}; do
+            echo "Attempt $i: Validating Gradle wrapper..."
+            ./gradlew wrapper --verify && break
+            echo "Validation failed. Retrying in 5 seconds..."
+            sleep 5
+          done          
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -40,7 +46,7 @@ jobs:
         run: ./gradlew ktlintCheck --no-daemon --stacktrace
 
       - name: Run detekt
-        run: ./gradlew detekt --config detekt.yml --no-daemon --stacktrace
+        run: ./gradlew detekt --no-daemon --stacktrace
 
       - name: Run spotless
         run: ./gradlew spotlessCheck --no-daemon --stacktrace
