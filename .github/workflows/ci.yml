@@ -40,7 +40,7 @@ jobs:
         run: ./gradlew ktlintCheck --no-daemon --stacktrace
 
       - name: Run detekt
-        run: ./gradlew detekt --config detekt.yml --no-daemon --stacktrace
+        run: ./gradlew detekt --no-daemon --stacktrace
 
       - name: Run spotless
         run: ./gradlew spotlessCheck --no-daemon --stacktrace
